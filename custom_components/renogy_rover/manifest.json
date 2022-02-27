@@ -1,0 +1,17 @@
+{
+  "domain": "renogy_rover",
+  "name": "Renogy Rover",
+  "config_flow": true,
+  "documentation": "https://www.home-assistant.io/integrations/renogy_rover",
+  "requirements": [
+    "minimalmodbus==1.0.2"
+  ],
+  "ssdp": [],
+  "zeroconf": [],
+  "homekit": {},
+  "dependencies": [],
+  "codeowners": [
+    "@ElD4n1"
+  ],
+  "iot_class": "local_polling"
+}
