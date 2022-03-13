@@ -1,4 +1,5 @@
 from collections.abc import Mapping
+from datetime import timedelta
 from typing import Any
 
 from homeassistant.core import HomeAssistant
@@ -23,6 +24,10 @@ from .const import DOMAIN
 from .device import RenogyRoverEntity
 from .renogy_rover import RenogyRover
 
+# Disable parallel updates
+PARALLEL_UPDATES = 1
+# Set a fairly high polling interval to get accurate power statistics
+SCAN_INTERVAL = timedelta(seconds=1)
 
 async def async_setup_entry(
     hass: HomeAssistant,
