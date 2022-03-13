@@ -18,9 +18,9 @@ from homeassistant.const import (
     TEMP_CELSIUS,
 )
 
-from const import DOMAIN
-from device import RenogyRoverEntity
-from renogy_rover import RenogyRover
+from .const import DOMAIN
+from .device import RenogyRoverEntity
+from .renogy_rover import RenogyRover
 
 
 async def async_setup_entry(
@@ -44,6 +44,7 @@ class SolarVoltageSensor(RenogyRoverEntity, SensorEntity):
         super().__init__(config_entry_data)
         self.client = client
         self.entity_description = SensorEntityDescription(
+            key="solar_voltage",
             device_class=SensorDeviceClass.VOLTAGE,
             native_unit_of_measurement=ELECTRIC_POTENTIAL_VOLT,
             state_class=SensorStateClass.MEASUREMENT,
@@ -55,4 +56,4 @@ class SolarVoltageSensor(RenogyRoverEntity, SensorEntity):
 
         This is the only method that should fetch new data for Home Assistant.
         """
-        self._state = self.client.solar_voltage()
+        self._attr_native_value = self.client.solar_voltage()

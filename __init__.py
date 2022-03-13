@@ -29,7 +29,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         )
         return False
 
-    hass.data[DOMAIN][entry.entry_id] = RenogyRover(entry.data[CONF_PORT], 1)
+    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = RenogyRover(entry.data[CONF_PORT], 1)
 
     hass.config_entries.async_setup_platforms(entry, PLATFORMS)
 
