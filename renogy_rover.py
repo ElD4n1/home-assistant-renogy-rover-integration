@@ -184,7 +184,7 @@ class RenogyRover(minimalmodbus.Instrument):
 
 
 if __name__ == "__main__":
-    rover = RenogyRover("COM5", 1)
+    rover = RenogyRover("/dev/ttyUSB0", 1)
     print("Model: ", rover.model())
     print("Versions: ", rover.version())
     print("Serial Number: ", rover.serial_number())
