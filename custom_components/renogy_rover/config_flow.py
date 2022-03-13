@@ -6,6 +6,7 @@ import logging
 from typing import Any
 
 from serial import SerialException
+import serial.tools.list_ports
 import voluptuous as vol
 
 from homeassistant import config_entries
