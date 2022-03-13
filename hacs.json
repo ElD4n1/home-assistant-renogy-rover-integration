@@ -1,0 +1,5 @@
+{
+    "name": "Renogy Rover",
+	"content_in_root": true,
+    "domains": ["sensor"],
+}
