@@ -15,7 +15,7 @@ from homeassistant.components.sensor import (
 from homeassistant.const import (
     ELECTRIC_CURRENT_AMPERE,
     ELECTRIC_POTENTIAL_VOLT,
-    ENERGY_KILO_WATT_HOUR,
+    ENERGY_WATT_HOUR,
     POWER_WATT,
     TEMP_CELSIUS,
 )
@@ -134,7 +134,7 @@ class EnergyProductionTodaySensor(RenogyRoverEntity, SensorEntity):
         self.entity_description = SensorEntityDescription(
             key="energy_production_today",
             device_class=SensorDeviceClass.ENERGY,
-            native_unit_of_measurement=ENERGY_KILO_WATT_HOUR,
+            native_unit_of_measurement=ENERGY_WATT_HOUR,
             state_class=SensorStateClass.TOTAL_INCREASING,
             name="Energy Production Today",
         )
