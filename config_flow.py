@@ -132,7 +132,7 @@ class RenogyRoverConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 _LOGGER.exception("Cannot open serial port %s", user_input[CONF_PORT])
             except NoDeviceFound:
                 errors["base"] = "no_device_found"
-                _LOGGER.exception("The serial port is open, but got no answer")
+                _LOGGER.exception("The serial port is working, but no device was found on the bus. Probably a cable issue.")
             except Exception:  # pylint: disable=broad-except
                 errors["base"] = "cannot_connect"
                 _LOGGER.error(
