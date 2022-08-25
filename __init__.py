@@ -8,7 +8,7 @@ from homeassistant.const import CONF_PORT, Platform
 from homeassistant.core import HomeAssistant
 
 from .config_flow import connect_and_read_device_info
-from .const import ATTR_SERIAL_NUMBER, DOMAIN
+from .const import ATTR_DEVICE_ADDRESS, ATTR_SERIAL_NUMBER, DOMAIN
 from .renogy_rover import RenogyRover
 
 PLATFORMS: list[Platform] = [Platform.SENSOR]
@@ -29,7 +29,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         )
         return False
 
-    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = RenogyRover(entry.data[CONF_PORT], 1)
+    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = RenogyRover(entry.data[CONF_PORT], entry.data[ATTR_DEVICE_ADDRESS])
 
     hass.config_entries.async_setup_platforms(entry, PLATFORMS)
 

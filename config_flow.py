@@ -7,6 +7,7 @@ import os
 from typing import Any
 
 from serial import SerialException
+import minimalmodbus
 import serial.tools.list_ports
 import voluptuous as vol
 
@@ -16,7 +17,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import HomeAssistantError
 
-from .const import ATTR_SERIAL_NUMBER, DEFAULT_INTEGRATION_TITLE, DOMAIN
+from .const import ATTR_DEVICE_ADDRESS, ATTR_SERIAL_NUMBER, DEFAULT_INTEGRATION_TITLE, DOMAIN, MAX_DEVICE_ADDRESS, MIN_DEVICE_ADDRESS
 from .renogy_rover import RenogyRover
 
 _LOGGER = logging.getLogger(__name__)
@@ -32,21 +33,34 @@ def connect_and_read_device_info(
     com_port = data[CONF_PORT]
     _LOGGER.debug("Intitialising com port=%s", com_port)
     device_info = {}
-    try:
-        client = RenogyRover(com_port, 1)
-        device_info[ATTR_SERIAL_NUMBER] = client.serial_number()
-        device_info[ATTR_SW_VERSION], device_info[ATTR_HW_VERSION] = client.version()
-        device_info[ATTR_MODEL] = client.model()
-        _LOGGER.debug("Returning device info=%s", device_info)
-    except SerialException as error:
-        _LOGGER.exception("Cannot open serial port %s", com_port[CONF_PORT])
-        if error.errno == 19:  # No such device.
-            raise InvalidPort from error
-        else:
-            raise CannotOpenPort from error
-    except Exception as err:  # pylint: disable=broad-except
-        _LOGGER.exception("Could not connect to device=%s", com_port)
-        raise err
+    # Either device address is already configured, or an address scan is performed if it is the first time connecting
+    min_device_address = data[ATTR_DEVICE_ADDRESS] if ATTR_DEVICE_ADDRESS in data else MIN_DEVICE_ADDRESS
+    max_device_address = data[ATTR_DEVICE_ADDRESS] if ATTR_DEVICE_ADDRESS in data else MAX_DEVICE_ADDRESS
+    for device_address in range(min_device_address, max_device_address+1):
+        try:
+            client = RenogyRover(com_port, device_address)
+            _LOGGER.debug(f"Scanned address {device_address}: connection established")
+            device_info[ATTR_DEVICE_ADDRESS] = device_address
+            device_info[ATTR_SERIAL_NUMBER] = client.serial_number()
+            device_info[ATTR_SW_VERSION], device_info[ATTR_HW_VERSION] = client.version()
+            device_info[ATTR_MODEL] = client.model()
+            _LOGGER.debug("Returning device info=%s", device_info)
+            break
+        except SerialException as error:
+            _LOGGER.exception("Cannot open serial port %s", com_port[CONF_PORT])
+            if error.errno == 19:  # No such device.
+                raise InvalidPort from error
+            else:
+                raise CannotOpenPort from error
+        except minimalmodbus.NoResponseError as error:
+            _LOGGER.debug(f"Scanned address {device_address}: no answer")
+            if device_address == max_device_address:
+                raise NoDeviceFound from error
+            else:
+                continue
+        except Exception as err:  # pylint: disable=broad-except
+            _LOGGER.exception("Could not connect to device=%s", com_port)
+            raise err
 
     return device_info
 
@@ -116,6 +130,9 @@ class RenogyRoverConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             except CannotOpenPort:
                 errors["base"] = "cannot_open_serial_port"
                 _LOGGER.exception("Cannot open serial port %s", user_input[CONF_PORT])
+            except NoDeviceFound:
+                errors["base"] = "no_device_found"
+                _LOGGER.exception("The serial port is open, but got no answer")
             except Exception:  # pylint: disable=broad-except
                 errors["base"] = "cannot_connect"
                 _LOGGER.error(
@@ -146,3 +163,7 @@ class CannotOpenPort(HomeAssistantError):
 
 class InvalidPort(HomeAssistantError):
     """Error to indicate the serial port is invalid."""
+
+
+class NoDeviceFound(HomeAssistantError):
+    """Error to indicate that no device was found on the bus."""
