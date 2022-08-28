@@ -5,14 +5,15 @@
         },
         "error": {
             "invalid_serial_port": "Serial port is not a valid device or could not be openned",
-            "cannot_open_serial_port": "Cannot open serial port, please check and try again"
+            "cannot_open_serial_port": "Cannot open serial port, please check and try again",
+            "no_device_found": "The serial port is working, but no device was found on the bus. Probably a cable issue."
         },
         "step": {
             "init": {
                 "data": {
                     "port": "UART or USB-UART adaptor port"
                 },
-                "description": "Connect your Renogy Rover to Home Assistant."
+                "description": "Connect your Renogy Rover to Home Assistant. If possible, choose a /dev/serial/by-id/ entry. A device address scan will be performed, which can take up to two minutes."
             }
         }
     }
