@@ -125,6 +125,9 @@ class RenogyRoverConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 self.init_info = await self.hass.async_add_executor_job(
                     connect_and_read_device_info, self.hass, user_input
                 )
+                await self.async_set_unique_id(f"{self.init_info[ATTR_SERIAL_NUMBER]}")
+                # Abort the flow if a config entry with the same unique ID exists
+                self._abort_if_unique_id_configured(updates={CONF_PORT: user_input[CONF_PORT]})
             except InvalidPort:
                 errors["base"] = "invalid_serial_port"
             except CannotOpenPort:
