@@ -1,7 +1,7 @@
 {
   "domain": "renogy_rover",
   "name": "Renogy Rover",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "config_flow": true,
   "documentation": "https://www.home-assistant.io/integrations/renogy_rover",
   "requirements": [
