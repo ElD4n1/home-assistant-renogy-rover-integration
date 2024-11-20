@@ -13,11 +13,11 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.const import (
-    ELECTRIC_CURRENT_AMPERE,
-    ELECTRIC_POTENTIAL_VOLT,
-    ENERGY_WATT_HOUR,
-    POWER_WATT,
-    TEMP_CELSIUS,
+    UnitOfElectricCurrent,
+    UnitOfElectricPotential,
+    UnitOfEnergy,
+    UnitOfPower,
+    UnitOfTemperature,
 )
 
 from .const import DOMAIN
@@ -58,7 +58,7 @@ class SolarVoltageSensor(RenogyRoverEntity, SensorEntity):
         self.entity_description = SensorEntityDescription(
             key="solar_voltage",
             device_class=SensorDeviceClass.VOLTAGE,
-            native_unit_of_measurement=ELECTRIC_POTENTIAL_VOLT,
+            native_unit_of_measurement=UnitOfElectricPotential.VOLT,
             state_class=SensorStateClass.MEASUREMENT,
             name="Solar Voltage",
         )
@@ -77,7 +77,7 @@ class SolarCurrentSensor(RenogyRoverEntity, SensorEntity):
         self.entity_description = SensorEntityDescription(
             key="solar_current",
             device_class=SensorDeviceClass.CURRENT,
-            native_unit_of_measurement=ELECTRIC_CURRENT_AMPERE,
+            native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
             state_class=SensorStateClass.MEASUREMENT,
             name="Solar Current",
         )
@@ -96,7 +96,7 @@ class SolarPowerSensor(RenogyRoverEntity, SensorEntity):
         self.entity_description = SensorEntityDescription(
             key="solar_power",
             device_class=SensorDeviceClass.POWER,
-            native_unit_of_measurement=POWER_WATT,
+            native_unit_of_measurement=UnitOfPower.WATT,
             state_class=SensorStateClass.MEASUREMENT,
             name="Solar Power",
         )
@@ -115,7 +115,7 @@ class BatteryVoltageSensor(RenogyRoverEntity, SensorEntity):
         self.entity_description = SensorEntityDescription(
             key="battery_voltage",
             device_class=SensorDeviceClass.VOLTAGE,
-            native_unit_of_measurement=ELECTRIC_POTENTIAL_VOLT,
+            native_unit_of_measurement=UnitOfElectricPotential.VOLT,
             state_class=SensorStateClass.MEASUREMENT,
             name="Battery Voltage",
         )
@@ -134,7 +134,7 @@ class EnergyProductionTodaySensor(RenogyRoverEntity, SensorEntity):
         self.entity_description = SensorEntityDescription(
             key="energy_production_today",
             device_class=SensorDeviceClass.ENERGY,
-            native_unit_of_measurement=ENERGY_WATT_HOUR,
+            native_unit_of_measurement=UnitOfEnergy.WATT_HOUR,
             state_class=SensorStateClass.TOTAL_INCREASING,
             name="Energy Production Today",
         )
@@ -153,7 +153,7 @@ class ControllerTemperatureSensor(RenogyRoverEntity, SensorEntity):
         self.entity_description = SensorEntityDescription(
             key="controller_temperature",
             device_class=SensorDeviceClass.TEMPERATURE,
-            native_unit_of_measurement=TEMP_CELSIUS,
+            native_unit_of_measurement=UnitOfTemperature.CELSIUS,
             state_class=SensorStateClass.MEASUREMENT,
             name="Controller Temperature",
             entity_category=EntityCategory.DIAGNOSTIC
