@@ -45,7 +45,6 @@ class RenogyRoverEntity(Entity):
         """Return device specific attributes."""
         return {
             ATTR_IDENTIFIERS: {(DOMAIN, self._config_entry_data[ATTR_SERIAL_NUMBER])},
-            ATTR_ENTRY_TYPE: None,
             ATTR_SERIAL_NUMBER: self._config_entry_data[ATTR_SERIAL_NUMBER],
             ATTR_MANUFACTURER: MANUFACTURER,
             ATTR_MODEL: self._config_entry_data[ATTR_MODEL],
