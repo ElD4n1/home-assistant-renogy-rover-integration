@@ -104,7 +104,7 @@ class RenogyRoverConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle a flow initialised by the user."""
-        return await self.async_step_init()
+        return await self.async_step_init(user_input)
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None):
         """Handle the first step, which is selecting the serial port."""

@@ -7,7 +7,6 @@ from typing import Any
 from homeassistant.const import (
     ATTR_CONNECTIONS,
     ATTR_DEFAULT_NAME,
-    ATTR_ENTRY_TYPE,
     ATTR_HW_VERSION,
     ATTR_IDENTIFIERS,
     ATTR_MANUFACTURER,
