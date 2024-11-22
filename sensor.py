@@ -20,7 +20,7 @@ from homeassistant.const import (
     UnitOfTemperature,
 )
 
-from .const import DOMAIN
+from .const import DOMAIN, ChargingState
 from .device import RenogyRoverEntity
 from .renogy_rover import RenogyRover
 
@@ -172,6 +172,7 @@ class ChargingStatusSensor(RenogyRoverEntity, SensorEntity):
         self.client = client
         self.entity_description = SensorEntityDescription(
             key="charging_status",
+            native_unit_of_measurement=ChargingState,
             state_class=SensorStateClass.MEASUREMENT,
             name="Charging Status",
             entity_category=EntityCategory.DIAGNOSTIC
@@ -181,4 +182,4 @@ class ChargingStatusSensor(RenogyRoverEntity, SensorEntity):
         """
         Fetch new state data for the sensor.
         """
-        self._attr_native_value = self.client.charging_status_label()
+        self._attr_native_value = self.client.charging_status()
