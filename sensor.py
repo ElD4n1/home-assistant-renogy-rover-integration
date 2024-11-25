@@ -172,8 +172,6 @@ class ChargingStatusSensor(RenogyRoverEntity, SensorEntity):
         self.client = client
         self.entity_description = SensorEntityDescription(
             key="charging_status",
-            native_unit_of_measurement=ChargingState,
-            state_class=SensorStateClass.MEASUREMENT,
             name="Charging Status",
             entity_category=EntityCategory.DIAGNOSTIC
         )
@@ -182,4 +180,4 @@ class ChargingStatusSensor(RenogyRoverEntity, SensorEntity):
         """
         Fetch new state data for the sensor.
         """
-        self._attr_native_value = self.client.charging_status()
+        self._attr_native_value = self.client.charging_status_label()
