@@ -47,7 +47,7 @@ def connect_and_read_device_info(
             _LOGGER.debug("Returning device info=%s", device_info)
             break
         except SerialException as error:
-            _LOGGER.exception("Cannot open serial port %s", com_port[CONF_PORT])
+            _LOGGER.exception("Cannot open serial port %s", com_port)
             if error.errno == 19:  # No such device.
                 raise InvalidPort from error
             else:
