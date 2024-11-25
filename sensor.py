@@ -20,7 +20,7 @@ from homeassistant.const import (
     UnitOfTemperature,
 )
 
-from .const import DOMAIN, ChargingState
+from .const import DOMAIN
 from .device import RenogyRoverEntity
 from .renogy_rover import RenogyRover
 
