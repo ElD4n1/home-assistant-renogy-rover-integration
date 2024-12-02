@@ -47,7 +47,7 @@ def connect_and_read_device_info(
             _LOGGER.debug("Returning device info=%s", device_info)
             break
         except SerialException as error:
-            _LOGGER.exception("Cannot open serial port %s", com_port[CONF_PORT])
+            _LOGGER.exception("Cannot open serial port %s", com_port)
             if error.errno == 19:  # No such device.
                 raise InvalidPort from error
             else:
@@ -69,10 +69,6 @@ def scan_comports() -> tuple[list[str] | None, str | None]:
     """Find and store available COM ports for the GUI dropdown."""
     com_ports = serial.tools.list_ports.comports(include_links=True)
     com_ports_list = []
-
-    for port in com_ports:
-        com_ports_list.append(port.device)
-        _LOGGER.debug("COM port option: %s", port.device)
     
     # On Home Assistant OS there is a directory with symlinks derived from device ids,
     # which should be used to have deterministic device selection after reboot (USB number can change!)
@@ -80,9 +76,15 @@ def scan_comports() -> tuple[list[str] | None, str | None]:
     if os.path.exists(serial_id_links_dir):
         for device_link_name in os.listdir(serial_id_links_dir):
             com_ports_list.append(os.path.join(serial_id_links_dir, device_link_name))
+            _LOGGER.debug("Found COM port: %s", device_link_name)
+    else:
+        for port in com_ports:
+            com_ports_list.append(port.device)
+            _LOGGER.debug("Found COM port: %s", port.device)
 
     if len(com_ports_list) > 0:
         return com_ports_list, com_ports_list[0]
+
     _LOGGER.warning("No COM ports found")
     return None, None
 
@@ -102,7 +104,7 @@ class RenogyRoverConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle a flow initialised by the user."""
-        return await self.async_step_init()
+        return await self.async_step_init(user_input)
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None):
         """Handle the first step, which is selecting the serial port."""
@@ -115,11 +117,6 @@ class RenogyRoverConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         # Handle the initial step.
         if user_input is not None:
-            # Check if the port is already configured
-            for existing_entry in self.hass.config_entries.async_entries(DOMAIN):
-                if existing_entry.data[CONF_PORT] == user_input[CONF_PORT]:
-                    return self.async_abort(reason="port_already_configured")
-
             # Try to connect and read device info
             try:
                 self.init_info = await self.hass.async_add_executor_job(
@@ -139,6 +136,9 @@ class RenogyRoverConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     "Unable to communicate with Rover at %s", user_input[CONF_PORT]
                 )
             else:
+                await self.async_set_unique_id(f"{self.init_info[ATTR_SERIAL_NUMBER]}")
+                # Abort the flow if a config entry with the same unique ID exists
+                self._abort_if_unique_id_configured(updates={CONF_PORT: user_input[CONF_PORT]})
                 self.init_info.update(user_input)
                 return self.async_create_entry(
                     title=DEFAULT_INTEGRATION_TITLE, data=self.init_info

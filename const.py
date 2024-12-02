@@ -1,4 +1,5 @@
 """Constants for the Renogy Rover integration."""
+from enum import Enum
 
 DOMAIN = "renogy_rover"
 
