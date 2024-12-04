@@ -1,4 +1,4 @@
-"""Config flow for Renogy Rover integration."""
+# Config flow for Renogy Rover integration.
 from __future__ import annotations
 
 from collections.abc import Mapping
@@ -12,16 +12,19 @@ import serial.tools.list_ports
 import voluptuous as vol
 
 from homeassistant import config_entries
-from homeassistant.const import ATTR_HW_VERSION, ATTR_MODEL, ATTR_SW_VERSION, CONF_PORT
+from homeassistant.const import ATTR_HW_VERSION, ATTR_MODEL, ATTR_SW_VERSION, CONF_PORT, CONF_HOST, CONF_TYPE, DEVICE_TYPE_UART, DEVICE_TYPE_TCP
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import HomeAssistantError
 
 from .const import ATTR_DEVICE_ADDRESS, ATTR_SERIAL_NUMBER, DEFAULT_INTEGRATION_TITLE, DOMAIN, MAX_DEVICE_ADDRESS, MIN_DEVICE_ADDRESS
-from .renogy_rover import RenogyRover
+from .renogy_rover import RenogyRoverUART, RenogyRoverTCP
 
 _LOGGER = logging.getLogger(__name__)
 
+DEVICE_TYPE_SCHEMA = vol.Schema({
+    vol.Required(CONF_TYPE, default=DEVICE_TYPE_UART): vol.In([DEVICE_TYPE_UART, DEVICE_TYPE_TCP]),
+})
 
 def connect_and_read_device_info(
     hass: HomeAssistant, data: Mapping[str, Any]
@@ -30,37 +33,52 @@ def connect_and_read_device_info(
 
     Data has the keys from DATA_SCHEMA with values provided by the user.
     """
-    com_port = data[CONF_PORT]
-    _LOGGER.debug("Intitialising com port=%s", com_port)
+    device_type = data[CONF_TYPE]
     device_info = {}
-    # Either device address is already configured, or an address scan is performed if it is the first time connecting
-    min_device_address = data[ATTR_DEVICE_ADDRESS] if ATTR_DEVICE_ADDRESS in data else MIN_DEVICE_ADDRESS
-    max_device_address = data[ATTR_DEVICE_ADDRESS] if ATTR_DEVICE_ADDRESS in data else MAX_DEVICE_ADDRESS
-    for device_address in range(min_device_address, max_device_address+1):
+
+    if device_type == DEVICE_TYPE_UART:
+        com_port = data[CONF_PORT]
+        _LOGGER.debug("Initializing UART com port=%s", com_port)
+        min_device_address = data.get(ATTR_DEVICE_ADDRESS, MIN_DEVICE_ADDRESS)
+        max_device_address = data.get(ATTR_DEVICE_ADDRESS, MAX_DEVICE_ADDRESS)
+        for device_address in range(min_device_address, max_device_address + 1):
+            try:
+                client = RenogyRoverUART(com_port, device_address)
+                _LOGGER.debug(f"Scanned address {device_address}: connection established")
+                device_info[ATTR_DEVICE_ADDRESS] = device_address
+                device_info[ATTR_SERIAL_NUMBER] = client.serial_number()
+                device_info[ATTR_SW_VERSION], device_info[ATTR_HW_VERSION] = client.version()
+                device_info[ATTR_MODEL] = client.model()
+                _LOGGER.debug("Returning device info=%s", device_info)
+                break
+            except SerialException as error:
+                _LOGGER.exception("Cannot open serial port %s", com_port)
+                if error.errno == 19:  # No such device.
+                    raise InvalidPort from error
+                else:
+                    raise CannotOpenPort from error
+            except minimalmodbus.NoResponseError as error:
+                _LOGGER.debug(f"Scanned address {device_address}: no answer")
+                if device_address == max_device_address:
+                    raise NoDeviceFound from error
+                else:
+                    continue
+            except Exception as err:  # pylint: disable=broad-except
+                _LOGGER.exception("Could not connect to device=%s", com_port)
+                raise err
+
+    elif device_type == DEVICE_TYPE_TCP:
+        host = data[CONF_HOST]
+        _LOGGER.debug("Initializing TCP host=%s", host)
         try:
-            client = RenogyRover(com_port, device_address)
-            _LOGGER.debug(f"Scanned address {device_address}: connection established")
-            device_info[ATTR_DEVICE_ADDRESS] = device_address
+            client = RenogyRoverTCP(host)
             device_info[ATTR_SERIAL_NUMBER] = client.serial_number()
             device_info[ATTR_SW_VERSION], device_info[ATTR_HW_VERSION] = client.version()
             device_info[ATTR_MODEL] = client.model()
             _LOGGER.debug("Returning device info=%s", device_info)
-            break
-        except SerialException as error:
-            _LOGGER.exception("Cannot open serial port %s", com_port)
-            if error.errno == 19:  # No such device.
-                raise InvalidPort from error
-            else:
-                raise CannotOpenPort from error
-        except minimalmodbus.NoResponseError as error:
-            _LOGGER.debug(f"Scanned address {device_address}: no answer")
-            if device_address == max_device_address:
-                raise NoDeviceFound from error
-            else:
-                continue
         except Exception as err:  # pylint: disable=broad-except
-            _LOGGER.exception("Could not connect to device=%s", com_port)
-            raise err
+            _LOGGER.exception("Could not connect to device=%s", host)
+            raise CannotConnect from err
 
     return device_info
 
@@ -69,7 +87,7 @@ def scan_comports() -> tuple[list[str] | None, str | None]:
     """Find and store available COM ports for the GUI dropdown."""
     com_ports = serial.tools.list_ports.comports(include_links=True)
     com_ports_list = []
-    
+
     # On Home Assistant OS there is a directory with symlinks derived from device ids,
     # which should be used to have deterministic device selection after reboot (USB number can change!)
     serial_id_links_dir = "/dev/serial/by-id"
@@ -104,10 +122,24 @@ class RenogyRoverConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle a flow initialised by the user."""
-        return await self.async_step_init(user_input)
+        return await self.async_step_device_type(user_input)
 
-    async def async_step_init(self, user_input: dict[str, Any] | None = None):
-        """Handle the first step, which is selecting the serial port."""
+    async def async_step_device_type(self, user_input: dict[str, Any] | None = None):
+        """Handle the step to select device type."""
+        errors = {}
+        if user_input is not None:
+            self.init_info = user_input
+            if user_input[CONF_TYPE] == DEVICE_TYPE_UART:
+                return await self.async_step_uart()
+            elif user_input[CONF_TYPE] == DEVICE_TYPE_TCP:
+                return await self.async_step_tcp()
+
+        return self.async_show_form(
+            step_id="device_type", data_schema=DEVICE_TYPE_SCHEMA, errors=errors
+        )
+
+    async def async_step_uart(self, user_input: dict[str, Any] | None = None):
+        """Handle the step to configure UART connection."""
         errors = {}
         if self._com_ports_list is None:
             result = await self.hass.async_add_executor_job(scan_comports)
@@ -115,9 +147,8 @@ class RenogyRoverConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if self._default_com_port is None:
                 return self.async_abort(reason="no_serial_ports")
 
-        # Handle the initial step.
         if user_input is not None:
-            # Try to connect and read device info
+            user_input.update(self.init_info)
             try:
                 self.init_info = await self.hass.async_add_executor_job(
                     connect_and_read_device_info, self.hass, user_input
@@ -137,23 +168,53 @@ class RenogyRoverConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 )
             else:
                 await self.async_set_unique_id(f"{self.init_info[ATTR_SERIAL_NUMBER]}")
-                # Abort the flow if a config entry with the same unique ID exists
                 self._abort_if_unique_id_configured(updates={CONF_PORT: user_input[CONF_PORT]})
                 self.init_info.update(user_input)
                 return self.async_create_entry(
                     title=DEFAULT_INTEGRATION_TITLE, data=self.init_info
                 )
 
-        # If no user input, must be first pass through the config.
         data_schema = {
             vol.Required(CONF_PORT, default=self._default_com_port): vol.In(
                 self._com_ports_list
             ),
         }
 
-        # Show initial form.
         return self.async_show_form(
-            step_id="init", data_schema=vol.Schema(data_schema), errors=errors
+            step_id="uart", data_schema=vol.Schema(data_schema), errors=errors
+        )
+
+    async def async_step_tcp(self, user_input: dict[str, Any] | None = None):
+        """Handle the step to configure TCP connection."""
+        errors = {}
+        if user_input is not None:
+            user_input.update(self.init_info)
+            try:
+                self.init_info = await self.hass.async_add_executor_job(
+                    connect_and_read_device_info, self.hass, user_input
+                )
+            except CannotConnect:
+                errors["base"] = "cannot_connect"
+                _LOGGER.exception("Cannot connect to TCP device at %s", user_input[CONF_HOST])
+            except Exception:  # pylint: disable=broad-except
+                errors["base"] = "cannot_connect"
+                _LOGGER.error(
+                    "Unable to communicate with Rover at %s", user_input[CONF_HOST]
+                )
+            else:
+                await self.async_set_unique_id(f"{self.init_info[ATTR_SERIAL_NUMBER]}")
+                self._abort_if_unique_id_configured(updates={CONF_HOST: user_input[CONF_HOST]})
+                self.init_info.update(user_input)
+                return self.async_create_entry(
+                    title=DEFAULT_INTEGRATION_TITLE, data=self.init_info
+                )
+
+        data_schema = {
+            vol.Required(CONF_HOST): str,
+        }
+
+        return self.async_show_form(
+            step_id="tcp", data_schema=vol.Schema(data_schema), errors=errors
         )
 
 

@@ -22,7 +22,7 @@ from homeassistant.const import (
 
 from .const import DOMAIN
 from .device import RenogyRoverEntity
-from .renogy_rover import RenogyRover
+from .renogy_rover import BaseRenogyRover
 
 # Disable parallel updates
 PARALLEL_UPDATES = 1
@@ -37,7 +37,7 @@ async def async_setup_entry(
     """Set up Renogy Rover sensor based on a config entry."""
     entities: list[SensorEntity] = []
 
-    client: RenogyRover = hass.data[DOMAIN][config_entry.entry_id]
+    client: BaseRenogyRover = hass.data[DOMAIN][config_entry.entry_id]
     config_entry_data = config_entry.data
 
     entities.append(SolarVoltageSensor(client, config_entry_data))
@@ -52,7 +52,7 @@ async def async_setup_entry(
 
 class SolarVoltageSensor(RenogyRoverEntity, SensorEntity):
 
-    def __init__(self, client: RenogyRover, config_entry_data: Mapping[str, Any]):
+    def __init__(self, client: BaseRenogyRover, config_entry_data: Mapping[str, Any]):
         super().__init__(config_entry_data)
         self.client = client
         self.entity_description = SensorEntityDescription(
@@ -71,7 +71,7 @@ class SolarVoltageSensor(RenogyRoverEntity, SensorEntity):
 
 class SolarCurrentSensor(RenogyRoverEntity, SensorEntity):
 
-    def __init__(self, client: RenogyRover, config_entry_data: Mapping[str, Any]):
+    def __init__(self, client: BaseRenogyRover, config_entry_data: Mapping[str, Any]):
         super().__init__(config_entry_data)
         self.client = client
         self.entity_description = SensorEntityDescription(
@@ -90,7 +90,7 @@ class SolarCurrentSensor(RenogyRoverEntity, SensorEntity):
 
 class SolarPowerSensor(RenogyRoverEntity, SensorEntity):
 
-    def __init__(self, client: RenogyRover, config_entry_data: Mapping[str, Any]):
+    def __init__(self, client: BaseRenogyRover, config_entry_data: Mapping[str, Any]):
         super().__init__(config_entry_data)
         self.client = client
         self.entity_description = SensorEntityDescription(
@@ -109,7 +109,7 @@ class SolarPowerSensor(RenogyRoverEntity, SensorEntity):
 
 class BatteryVoltageSensor(RenogyRoverEntity, SensorEntity):
 
-    def __init__(self, client: RenogyRover, config_entry_data: Mapping[str, Any]):
+    def __init__(self, client: BaseRenogyRover, config_entry_data: Mapping[str, Any]):
         super().__init__(config_entry_data)
         self.client = client
         self.entity_description = SensorEntityDescription(
@@ -128,7 +128,7 @@ class BatteryVoltageSensor(RenogyRoverEntity, SensorEntity):
 
 class EnergyProductionTodaySensor(RenogyRoverEntity, SensorEntity):
 
-    def __init__(self, client: RenogyRover, config_entry_data: Mapping[str, Any]):
+    def __init__(self, client: BaseRenogyRover, config_entry_data: Mapping[str, Any]):
         super().__init__(config_entry_data)
         self.client = client
         self.entity_description = SensorEntityDescription(
@@ -147,7 +147,7 @@ class EnergyProductionTodaySensor(RenogyRoverEntity, SensorEntity):
 
 class ControllerTemperatureSensor(RenogyRoverEntity, SensorEntity):
 
-    def __init__(self, client: RenogyRover, config_entry_data: Mapping[str, Any]):
+    def __init__(self, client: BaseRenogyRover, config_entry_data: Mapping[str, Any]):
         super().__init__(config_entry_data)
         self.client = client
         self.entity_description = SensorEntityDescription(
@@ -167,7 +167,7 @@ class ControllerTemperatureSensor(RenogyRoverEntity, SensorEntity):
 
 class ChargingStatusSensor(RenogyRoverEntity, SensorEntity):
 
-    def __init__(self, client: RenogyRover, config_entry_data: Mapping[str, Any]):
+    def __init__(self, client: BaseRenogyRover, config_entry_data: Mapping[str, Any]):
         super().__init__(config_entry_data)
         self.client = client
         self.entity_description = SensorEntityDescription(

@@ -4,17 +4,16 @@ from __future__ import annotations
 import logging
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_PORT, Platform
+from homeassistant.const import CONF_PORT, CONF_HOST, CONF_TYPE, Platform
 from homeassistant.core import HomeAssistant
 
 from .config_flow import connect_and_read_device_info
-from .const import ATTR_DEVICE_ADDRESS, ATTR_SERIAL_NUMBER, DOMAIN
-from .renogy_rover import RenogyRover
+from .const import ATTR_DEVICE_ADDRESS, ATTR_SERIAL_NUMBER, DOMAIN, DEVICE_TYPE_UART, DEVICE_TYPE_TCP
+from .renogy_rover import RenogyRoverUART, RenogyRoverTCP
 
 PLATFORMS: list[Platform] = [Platform.SENSOR]
 
 _LOGGER = logging.getLogger(__name__)
-
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Renogy Rover from a config entry."""
@@ -29,7 +28,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         )
         return False
 
-    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = RenogyRover(entry.data[CONF_PORT], entry.data[ATTR_DEVICE_ADDRESS])
+    if entry.data[CONF_TYPE] == DEVICE_TYPE_UART:
+        hass.data.setdefault(DOMAIN, {})[entry.entry_id] = RenogyRoverUART(entry.data[CONF_PORT], entry.data[ATTR_DEVICE_ADDRESS])
+    elif entry.data[CONF_TYPE] == DEVICE_TYPE_TCP:
+        hass.data.setdefault(DOMAIN, {})[entry.entry_id] = RenogyRoverTCP(entry.data[CONF_HOST])
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 

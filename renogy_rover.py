@@ -7,6 +7,7 @@ Driver for the Renogy Rover Solar Controller using the Modbus RTU protocol.
 """
 
 import minimalmodbus
+from pymodbus.client.sync import ModbusTcpClient
 
 BATTERY_TYPE = {1: "open", 2: "sealed", 3: "gel", 4: "lithium", 5: "self-customized"}
 
@@ -20,16 +21,10 @@ CHARGING_STATE = {
     6: "current limiting",
 }
 
-
-class RenogyRover(minimalmodbus.Instrument):
+class BaseRenogyRover:
     """
-    Communicates using the Modbus RTU protocol (via provided USB<->RS232 cable).
+    Base class for Renogy Rover controllers.
     """
-
-    def __init__(self, portname, slaveaddress, baudrate=9600, timeout=0.5):
-        minimalmodbus.Instrument.__init__(self, portname, slaveaddress)
-        self.serial.baudrate = baudrate
-        self.serial.timeout = timeout
 
     def model(self):
         """
@@ -39,7 +34,7 @@ class RenogyRover(minimalmodbus.Instrument):
 
     def system_voltage_current(self):
         """
-        Read the controler's system voltage and current.
+        Read the controller's system voltage and current.
         Returns a tuple of (voltage, current).
         """
         register = self.read_register(10)
@@ -49,10 +44,10 @@ class RenogyRover(minimalmodbus.Instrument):
 
     def version(self):
         """
-        Read the controler's software and hardware version information.
+        Read the controller's software and hardware version information.
         Returns a tuple of (software version, hardware version).
         """
-        registers = self.read_registers(20, 4)
+        registers = self.read_register(20, 4)
         soft_major = registers[0] & 0x00FF
         soft_minor = registers[1] >> 8
         soft_patch = registers[1] & 0x00FF
@@ -67,7 +62,7 @@ class RenogyRover(minimalmodbus.Instrument):
         """
         Read the controller's serial number.
         """
-        registers = self.read_registers(24, 2)
+        registers = self.read_register(24, 2)
         return f"{registers[0]}{registers[1]}"
 
     def battery_percentage(self):
@@ -180,11 +175,40 @@ class RenogyRover(minimalmodbus.Instrument):
         register = self.read_register(57348)
         return BATTERY_TYPE.get(register)
 
-    # TODO: resume at 3.10 of spec
+
+class RenogyRoverUART(BaseRenogyRover, minimalmodbus.Instrument):
+    """
+    Communicates using the Modbus RTU protocol (via provided USB<->RS232 cable).
+    """
+
+    def __init__(self, portname, slaveaddress, baudrate=9600, timeout=0.5):
+        minimalmodbus.Instrument.__init__(self, portname, slaveaddress)
+        self.serial.baudrate = baudrate
+        self.serial.timeout = timeout
+
+
+class RenogyRoverTCP(BaseRenogyRover):
+    """
+    Communicates using the Modbus TCP protocol.
+    """
+
+    def __init__(self, host, port=502, unit=1):
+        self.client = ModbusTcpClient(host, port)
+        self.unit = unit
+
+    def read_register(self, address, count=1):
+        response = self.client.read_holding_registers(address, count, unit=self.unit)
+        if count == 1:
+            return response.registers[0]
+        return response.registers
+
+    def read_string(self, address, number_of_registers):
+        registers = self.read_register(address, number_of_registers)
+        return ''.join(chr(register) for register in registers)
 
 
 if __name__ == "__main__":
-    rover = RenogyRover("/dev/ttyUSB0", 1)
+    rover = RenogyRoverUART("/dev/ttyUSB0", 1)
     print("Model: ", rover.model())
     print("Versions: ", rover.version())
     print("Serial Number: ", rover.serial_number())
