@@ -1,0 +1,37 @@
+{
+    "config": {
+        "abort": {
+            "no_serial_ports": "Aucun port série trouvé. Cette intégration nécessite un périphérique UART valide pour communiquer."
+        },
+        "error": {
+            "invalid_serial_port": "Le port série n'est pas un périphérique valide ou n'a pas pu être ouvert.",
+            "cannot_open_serial_port": "Impossible d'ouvrir le port série, veuillez vérifier et réessayer.",
+            "unknown": "Une erreur inconnue s'est produite.",
+            "no_device_found": "Le port série fonctionne, mais aucun périphérique n'a été trouvé sur le bus. Il s'agit probablement d'un problème de câble."
+        },
+        "step": {
+            "uart": {
+                "data": {
+                    "port": "Port UART ou adaptateur USB-UART"
+                },
+                "title": "Connectez votre Renogy Rover à Home Assistant via UART",
+                "description": "Si possible, choisissez une entrée /dev/serial/by-id/. Une analyse de l'adresse du périphérique sera effectuée, ce qui peut prendre jusqu'à deux minutes."
+            },
+            "tcp": {
+                "data": {
+                    "host": "Le nom d'hôte ou l'adresse IP du périphérique, par exemple 192.168.1.5",
+                    "port": "Numéro de port TCP (1-65535)"
+                },
+                "title": "Connectez votre Renogy Rover à Home Assistant via TCP",
+                "description": "Saisissez l'adresse IP et le port du périphérique TCP Renogy Rover, tel qu'une boîte Moxa ou un convertisseur Série vers IP."
+            },
+            "device_type": {
+                "data": {
+                    "type": "Type de connexion"
+                },
+                "description": "Choisissez comment votre Renogy Rover est connecté à HomeAssistant.",
+                "title": "Choisissez le type de connexion Renogy Rover"
+            }
+        }
+    }
+}

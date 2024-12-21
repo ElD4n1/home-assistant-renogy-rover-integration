@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
     "config": {
         "abort": {
             "no_serial_ports": "No com ports found.  Need a valid UART device to communicate."
@@ -18,3 +19,41 @@
         }
     }
 }
+=======
+	"config": {
+		"abort": {
+			"no_serial_ports": "No serial ports found. This integration needs a valid UART device to communicate."
+		},
+		"error": {
+			"invalid_serial_port": "Serial port is not a valid device or could not be opened.",
+			"cannot_open_serial_port": "Cannot open serial port, please check and try again.",
+                        "unknown": "An unknown error occurred.",
+			"no_device_found": "The serial port is working, but no device was found on the bus. This is probably a cable issue."
+		},
+		"step": {
+			"uart": {
+				"data": {
+					"port": "UART or USB-UART adaptor port"
+				},
+				"title": "Connect your Renogy Rover to Home Assistant via UART",
+				"description": "If possible, choose a /dev/serial/by-id/ entry. A device address scan will be performed, which can take up to two minutes."
+			},
+			"tcp": {
+				"data": {
+					"host": "The host name or IP address of the device, e.g. 192.168.1.5",
+					"port": "TCP Port number (1-65535)"
+				},
+				"title": "Connect your Renogy Rover to Home Assistant via TCP",
+				"description": "Enter the IP address and port of the Renogy Rover TCP device, such as a Moxa box or Serial to IP converter."
+			},
+			"device_type": {
+                                "data": {
+                                        "type": "Connection Type"
+                                },
+				"description": "Choose how your Renogy Rover is connected to HomeAssistant.",
+				"title": "Choose Renogy Rover Connection Type"
+			}
+		}
+	}
+}
+>>>>>>> a12d2b6 (Added TCP Port configuration. Fixed incorrect imports and modbus references. Added custom dialog labels. Added French language translations.)

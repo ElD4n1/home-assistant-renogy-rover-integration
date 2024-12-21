@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
   "config": {
     "step": {
       "user": {
@@ -20,3 +21,26 @@
     }
   }
 }
+=======
+	"config": {
+		"step": {
+			"user": {
+				"data": {
+					"host": "[%key:common::config_flow::data::host%]",
+					"username": "[%key:common::config_flow::data::username%]",
+					"password": "[%key:common::config_flow::data::password%]"
+				}
+			}
+		},
+		"error": {
+			"cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
+			"invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
+			"unknown": "[%key:common::config_flow::error::unknown%]",
+			"no_device_found": "[%key:common::config_flow::error::no_device_found%]"
+		},
+		"abort": {
+			"already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
+		}
+	}
+}
+>>>>>>> a12d2b6 (Added TCP Port configuration. Fixed incorrect imports and modbus references. Added custom dialog labels. Added French language translations.)
