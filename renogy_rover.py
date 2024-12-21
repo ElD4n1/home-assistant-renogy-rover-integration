@@ -229,4 +229,8 @@ if __name__ == "__main__":
     print("Solar Power: ", rover.solar_power())
     print("Power Generated Today (kilowatt hours): ", rover.power_generation_today())
     print("Charging Amp/Hours Today: ", rover.charging_amp_hours_today())
+<<<<<<< HEAD
     print("Discharging Amp/Hours Today: ", rover.discharging_amp_hours_today())
+=======
+    print("Discharging Amp/Hours Today: ", rover.discharging_amp_hours_today())
+>>>>>>> a12d2b6 (Added TCP Port configuration. Fixed incorrect imports and modbus references. Added custom dialog labels. Added French language translations.)

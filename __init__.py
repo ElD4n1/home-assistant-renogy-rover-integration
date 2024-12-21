@@ -31,7 +31,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if entry.data[CONF_TYPE] == DEVICE_TYPE_UART:
         hass.data.setdefault(DOMAIN, {})[entry.entry_id] = RenogyRoverUART(entry.data[CONF_PORT], entry.data[ATTR_DEVICE_ADDRESS])
     elif entry.data[CONF_TYPE] == DEVICE_TYPE_TCP:
+<<<<<<< HEAD
         hass.data.setdefault(DOMAIN, {})[entry.entry_id] = RenogyRoverTCP(entry.data[CONF_HOST])
+=======
+        hass.data.setdefault(DOMAIN, {})[entry.entry_id] = RenogyRoverTCP(entry.data[CONF_HOST], entry.data[CONF_PORT])
+>>>>>>> a12d2b6 (Added TCP Port configuration. Fixed incorrect imports and modbus references. Added custom dialog labels. Added French language translations.)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
@@ -50,4 +54,8 @@ def device_matches_entry(
     device_info: dict[str, str], config_entry: ConfigEntry
 ) -> bool:
     """Check if device info matches config entry."""
+<<<<<<< HEAD
     return device_info[ATTR_SERIAL_NUMBER] == config_entry.data[ATTR_SERIAL_NUMBER]
+=======
+    return device_info[ATTR_SERIAL_NUMBER] == config_entry.data[ATTR_SERIAL_NUMBER]
+>>>>>>> a12d2b6 (Added TCP Port configuration. Fixed incorrect imports and modbus references. Added custom dialog labels. Added French language translations.)

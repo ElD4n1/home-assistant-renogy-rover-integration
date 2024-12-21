@@ -12,12 +12,20 @@ import serial.tools.list_ports
 import voluptuous as vol
 
 from homeassistant import config_entries
+<<<<<<< HEAD
 from homeassistant.const import ATTR_HW_VERSION, ATTR_MODEL, ATTR_SW_VERSION, CONF_PORT, CONF_HOST, CONF_TYPE, DEVICE_TYPE_UART, DEVICE_TYPE_TCP
+=======
+from homeassistant.const import ATTR_HW_VERSION, ATTR_MODEL, ATTR_SW_VERSION, CONF_PORT, CONF_HOST, CONF_TYPE
+>>>>>>> a12d2b6 (Added TCP Port configuration. Fixed incorrect imports and modbus references. Added custom dialog labels. Added French language translations.)
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import HomeAssistantError
 
+<<<<<<< HEAD
 from .const import ATTR_DEVICE_ADDRESS, ATTR_SERIAL_NUMBER, DEFAULT_INTEGRATION_TITLE, DOMAIN, MAX_DEVICE_ADDRESS, MIN_DEVICE_ADDRESS
+=======
+from .const import ATTR_DEVICE_ADDRESS, ATTR_SERIAL_NUMBER, DEFAULT_INTEGRATION_TITLE, DOMAIN, MAX_DEVICE_ADDRESS, MIN_DEVICE_ADDRESS, DEVICE_TYPE_UART, DEVICE_TYPE_TCP
+>>>>>>> a12d2b6 (Added TCP Port configuration. Fixed incorrect imports and modbus references. Added custom dialog labels. Added French language translations.)
 from .renogy_rover import RenogyRoverUART, RenogyRoverTCP
 
 _LOGGER = logging.getLogger(__name__)
@@ -69,15 +77,26 @@ def connect_and_read_device_info(
 
     elif device_type == DEVICE_TYPE_TCP:
         host = data[CONF_HOST]
+<<<<<<< HEAD
         _LOGGER.debug("Initializing TCP host=%s", host)
         try:
             client = RenogyRoverTCP(host)
+=======
+        port = data[CONF_PORT]
+        _LOGGER.debug("Initializing TCP host=%s, port=%s", host, port)
+        try:
+            client = RenogyRoverTCP(host, port)
+>>>>>>> a12d2b6 (Added TCP Port configuration. Fixed incorrect imports and modbus references. Added custom dialog labels. Added French language translations.)
             device_info[ATTR_SERIAL_NUMBER] = client.serial_number()
             device_info[ATTR_SW_VERSION], device_info[ATTR_HW_VERSION] = client.version()
             device_info[ATTR_MODEL] = client.model()
             _LOGGER.debug("Returning device info=%s", device_info)
         except Exception as err:  # pylint: disable=broad-except
+<<<<<<< HEAD
             _LOGGER.exception("Could not connect to device=%s", host)
+=======
+            _LOGGER.exception("Could not connect to device=%s, port=%s", host, port)
+>>>>>>> a12d2b6 (Added TCP Port configuration. Fixed incorrect imports and modbus references. Added custom dialog labels. Added French language translations.)
             raise CannotConnect from err
 
     return device_info
@@ -195,6 +214,7 @@ class RenogyRoverConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 )
             except CannotConnect:
                 errors["base"] = "cannot_connect"
+<<<<<<< HEAD
                 _LOGGER.exception("Cannot connect to TCP device at %s", user_input[CONF_HOST])
             except Exception:  # pylint: disable=broad-except
                 errors["base"] = "cannot_connect"
@@ -204,6 +224,17 @@ class RenogyRoverConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             else:
                 await self.async_set_unique_id(f"{self.init_info[ATTR_SERIAL_NUMBER]}")
                 self._abort_if_unique_id_configured(updates={CONF_HOST: user_input[CONF_HOST]})
+=======
+                _LOGGER.exception("Cannot connect to TCP device at %s, port %s", user_input[CONF_HOST], user_input[CONF_PORT])
+            except Exception:  # pylint: disable=broad-except
+                errors["base"] = "cannot_connect"
+                _LOGGER.error(
+                    "Unable to communicate with Rover at %s, port %s", user_input[CONF_HOST], user_input[CONF_PORT]
+                )
+            else:
+                await self.async_set_unique_id(f"{self.init_info[ATTR_SERIAL_NUMBER]}")
+                self._abort_if_unique_id_configured(updates={CONF_HOST: user_input[CONF_HOST],CONF_PORT: user_input[CONF_PORT]})
+>>>>>>> a12d2b6 (Added TCP Port configuration. Fixed incorrect imports and modbus references. Added custom dialog labels. Added French language translations.)
                 self.init_info.update(user_input)
                 return self.async_create_entry(
                     title=DEFAULT_INTEGRATION_TITLE, data=self.init_info
@@ -211,6 +242,10 @@ class RenogyRoverConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         data_schema = {
             vol.Required(CONF_HOST): str,
+<<<<<<< HEAD
+=======
+            vol.Required(CONF_PORT, default=502): vol.All(int, vol.Range(min=1, max=65535))
+>>>>>>> a12d2b6 (Added TCP Port configuration. Fixed incorrect imports and modbus references. Added custom dialog labels. Added French language translations.)
         }
 
         return self.async_show_form(
@@ -227,4 +262,8 @@ class InvalidPort(HomeAssistantError):
 
 
 class NoDeviceFound(HomeAssistantError):
+<<<<<<< HEAD
     """Error to indicate that no device was found on the bus."""
+=======
+    """Error to indicate that no device was found on the bus."""
+>>>>>>> a12d2b6 (Added TCP Port configuration. Fixed incorrect imports and modbus references. Added custom dialog labels. Added French language translations.)
